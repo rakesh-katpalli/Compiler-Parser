@@ -238,17 +238,17 @@ int task0()
 int display_task1()
 {
     int counter;
-    std::vector<struct sets>::iterator iterator1;
-    std::vector<std::string>::iterator iterator2;
-    for(iterator1 = first.begin(); iterator1 != first.end(); ++iterator1)
+    std::vector<struct sets>::iterator set_iterator;
+    std::vector<std::string>::iterator iterator;
+    for(set_iterator = first.begin(); set_iterator != first.end(); ++set_iterator)
     {
         counter = 1;
-        std::sort ( ((*iterator1).current_sets).begin(), ((*iterator1).current_sets).end());
-        cout<<"FIRST("<<(*iterator1).str<<") = { ";
-        for(iterator2 = ((*iterator1).current_sets).begin(); iterator2 != ((*iterator1).current_sets).end(); ++iterator2)
+        std::sort ( ((*set_iterator).current_sets).begin(), ((*set_iterator).current_sets).end());
+        cout<<"FIRST("<<(*set_iterator).str<<") = { ";
+        for(iterator = ((*set_iterator).current_sets).begin(); iterator != ((*set_iterator).current_sets).end(); ++iterator)
         {
-            cout<<(*iterator2);
-            if(counter < ((*iterator1).current_sets).size())
+            cout<<(*iterator);
+            if(counter < ((*set_iterator).current_sets).size())
                cout<<", ";
             ccounter++;
         }
@@ -408,17 +408,17 @@ int task1()
 int display_task2()
 {
     int counter;
-    std::vector<struct sets>::iterator iterator1;
-    std::vector<std::string>::iterator iterator2;
-    for(iterator1 = follow.begin(); iterator1 != follow.end(); ++iterator1)
+    std::vector<struct sets>::iterator set_iterator;
+    std::vector<std::string>::iterator iterator;
+    for(set_iterator = follow.begin(); set_iterator != follow.end(); ++set_iterator)
     {
         counter = 1;
-        std::sort ( ((*iterator1).current_sets).begin(), ((*iterator1).current_sets).end());
-        cout<<"FOLLOW("<<(*iterator1).str<<") = { ";
-        for(iterator2 = ((*iterator1).current_sets).begin(); iterator2 != ((*iterator1).current_sets).end(); ++iterator2)
+        std::sort ( ((*set_iterator).current_sets).begin(), ((*set_iterator).current_sets).end());
+        cout<<"FOLLOW("<<(*set_iterator).str<<") = { ";
+        for(iterator = ((*set_iterator).current_sets).begin(); iterator != ((*set_iterator).current_sets).end(); ++iterator)
         {
-            cout<<(*iterator2);
-            if(counter < ((*iterator1).current_sets).size())
+            cout<<(*iterator);
+            if(counter < ((*set_iterator).current_sets).size())
                cout<<", ";
             counter++;
         }
