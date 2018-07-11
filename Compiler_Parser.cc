@@ -11,19 +11,19 @@ using namespace std;
 struct sets
 {
     std::string str;
-    std::vector<string> prev;
-    std::vector<string> cur;
+    std::vector<string> previous_sets;
+    std::vector<string> current_sets;
 };
 
-std::vector<string> nonvec;
-std::vector<string> tvec;
-std::vector<string> termvec;
+std::vector<string> non_terminal_vector;
+std::vector<string> token_vector;
+std::vector<string> terminal_vector;
 
 std::vector<struct sets> first;
 std::vector<struct sets> follow;
 
 int terminal_length;
-int h,dh;
+int hash,double_hash;
 int token_length;
 int line_no = 1;
 char token[255]; // token string
@@ -36,35 +36,35 @@ int syntax_error()
 
 int skip_space()
 {
-    char c;
+    char ch;
 
-    c = getchar();
-    line_no += (c == '\n');
-    while (!feof(stdin) && isspace(c))
+    ch = getchar();
+    line_no += (ch == '\n');
+    while (!feof(stdin) && isspace(ch))
     {
-        c = getchar();
-        line_no += (c == '\n');
+        ch = getchar();
+        line_no += (ch == '\n');
     }
-    ungetc(c, stdin);
+    ungetc(ch, stdin);
     return 0;
 }
 
-int scan_nonterminal()
+int scan_non_terminal()
 {
-    char c;
+    char ch;
     token_length = 0;
-    c = getchar();
-    if (isalpha(c))
+    ch = getchar();
+    if (isalpha(ch))
     {
-        while (isalnum(c))
+        while (isalnum(ch))
         {
-            token[token_length] = c;
+            token[token_length] = ch;
             token_length++;
-            c = getchar();
+            ch = getchar();
         }
         if (!feof(stdin))
         {
-            ungetc(c, stdin);
+            ungetc(ch, stdin);
         }
         token[token_length] = '\0';
         return 0;
@@ -75,22 +75,22 @@ int scan_nonterminal()
     }
 }
 
-int scan()
+int scanner()
 {
-    char c;
+    char ch;
     token_length = 0;
-    c = getchar();
-    if (isalpha(c))
+    ch = getchar();
+    if (isalpha(ch))
     {
-        while (isalnum(c))
+        while (isalnum(ch))
         {
-            token[token_length] = c;
+            token[token_length] = ch;
             token_length++;
-            c = getchar();
+            ch = getchar();
         }
         if (!feof(stdin))
         {
-            ungetc(c, stdin);
+            ungetc(ch, stdin);
         }
         token[token_length] = '\0';
         return 0;
@@ -103,48 +103,48 @@ int scan()
 
 int counter()
 {
-    std::vector<string>::iterator t;
-    std::vector<string>::iterator term;
-    int c = 0;
+    std::vector<string>::iterator iterator1;
+    std::vector<string>::iterator iterator2;
+    int ch = 0;
     int count = 0;
 
-    for(term = termvec.begin(); term != termvec.end(); ++term)
+    for(iterator1 = terminal_vector.begin(); iterator1 != terminal_vector.end(); ++iterator1)
     {
         count = 0;
-        for(t = tvec.begin(); t != tvec.end(); ++t)
+        for(iterator2 = token_vector.begin(); iterator2 != token_vector.end(); ++iterator2)
         {
-            c=0;
-            while( (*t).compare("#") !=0 && (*t).compare("##") !=0)
+            ch=0;
+            while( (*iterator2).compare("#") !=0 && (*iterator2).compare("##") !=0)
             {
-                if( (*term).compare((*t)) == 0 )
+                if( (*iterator1).compare((*iterator2)) == 0 )
                 {
-                    c=1;
+                    ch=1;
                 }
-                t++;
+                iterator2++;
             }
-            count += c;
+            count += ch;
         }
-        cout<<(*term)<<": "<<count<<endl;
+        cout<<(*iterator1)<<": "<<count<<endl;
     }
     return 0;
 }
 
-int scanright()
+int scan_right()
 {
     int i;
-    std::vector<string>::iterator t;
-    std::vector<string>::iterator n;
+    std::vector<string>::iterator iterator1;
+    std::vector<string>::iterator iterator2;
 
-    for(t = tvec.begin(); t != tvec.end(); ++t)
+    for(iterator1 = token_vector.begin(); iterator1 != token_vector.end(); ++iterator1)
     {
-        if( (*t).compare("#") == 0 || (*t).compare("##") == 0)
+        if( (*iterator1).compare("#") == 0 || (*iterator1).compare("##") == 0)
         {
             continue;
         }
         i = 0;
-        for(n = nonvec.begin(); n != nonvec.end(); ++n)
+        for(iterator2 = non_terminal_vector.begin(); iterator2 != non_terminal_vector.end(); ++iterator2)
         {
-            if( (*t).compare(*n) == 0)
+            if( (*iterator1).compare(*iterator2) == 0)
             {
                 i = 1;
                 break;
@@ -152,13 +152,10 @@ int scanright()
         }
         if (i == 0)
         {
-            if(std::find( termvec.begin(), termvec.end(), (*t)) != termvec.end())
+            if(!(std::find( terminal_vector.begin(), terminal_vector.end(), (*iterator1)) != terminal_vector.end()))
             {
-            }
-            else
-            {
-                termvec.push_back(*t);
-            }
+                terminal_vector.push_back(*iterator1);
+            }    
         }
     }
     return 0;
@@ -166,108 +163,94 @@ int scanright()
 
 int display_task0()
 {
-    std::sort (termvec.begin(), termvec.end());
-    for(std::vector<string>::iterator it = nonvec.begin(); it != nonvec.end(); ++it)
+    for(std::vector<string>::iterator iterator = non_terminal_vector.begin(); iterator != non_terminal_vector.end(); ++iterator)
     {
-        cout<<(*it)<<" ";
+        cout<<(*iterator)<<" ";
     }
     cout<<endl;
-    counter();
-    return 0;
-}
-
-int caltask0()
-{
-    char c;
-    h = 0;
-    dh = 0;
-
-//scaning non terminal
-    while(!h)
+    for(std::vector<string>::iterator iterator = terminal_vector.begin(); iterator != terminal_vector.end(); ++iterator)
     {
-        skip_space();
-        c = getchar();
-        if (c == '#')
-        {
-            h = 1;
-            break;
-        }
-        else
-        {
-            ungetc(c, stdin);
-        }
-        if(!scan_nonterminal())
-        {
-            nonvec.push_back(std::string(token));
-        }
+        cout<<(*iterator)<<" ";
     }
-
-//scanning terminal
-    while(!dh)
-    {
-        skip_space();
-        c = getchar();
-        if (c == '#')
-        {
-            c = getchar();
-            if (c == '#')
-            {
-                tvec.push_back(std::string("##"));
-                dh = 1;
-                break;
-            }
-            else
-            {
-                ungetc(c, stdin);
-                tvec.push_back(std::string("#"));
-            }
-        }
-        else
-        {
-            ungetc(c, stdin);
-        }
-        if(!scan())
-        {
-            tvec.push_back(std::string(token));
-        }
-    }
-    scanright();
+    cout<<endl;
     return 0;
 }
 
 int task0()
 {
-    caltask0();
-    //display_task0();
-    for(std::vector<string>::iterator it = nonvec.begin(); it != nonvec.end(); ++it)
+    char ch;
+    hash = 0;
+    double_hash = 0;
+
+//scaning non terminal
+    while(!hash)
     {
-        cout<<(*it)<<" ";
+        skip_space();
+        ch = getchar();
+        if (ch == '#')
+        {
+            hash = 1;
+            break;
+        }
+        else
+        {
+            ungetc(ch, stdin);
+        }
+        if(!scan_non_terminal())
+        {
+            non_terminal_vector.push_back(std::string(token));
+        }
     }
-    cout<<endl;
-    for(std::vector<string>::iterator it = termvec.begin(); it != termvec.end(); ++it)
+
+//scanning terminal
+    while(!double_hash)
     {
-        cout<<(*it)<<" ";
+        skip_space();
+        ch = getchar();
+        if (ch == '#')
+        {
+            ch = getchar();
+            if (ch == '#')
+            {
+                token_vector.push_back(std::string("##"));
+                double_hash = 1;
+                break;
+            }
+            else
+            {
+                ungetc(ch, stdin);
+                token_vector.push_back(std::string("#"));
+            }
+        }
+        else
+        {
+            ungetc(ch, stdin);
+        }
+        if(!scanner())
+        {
+            token_vector.push_back(std::string(token));
+        }
     }
-    cout<<endl;
+    scan_right();
     return 0;
 }
 
 int display_task1()
 {
-    int c;
-    std::vector<struct sets>::iterator f;
-    std::vector<std::string>::iterator f1;
-    for(f = first.begin(); f != first.end(); ++f)
+    int counter;
+    std::vector<struct sets>::iterator iterator1;
+    std::vector<std::string>::iterator iterator2;
+    for(iterator1 = first.begin(); iterator1 != first.end(); ++iterator1)
     {
-        c = 1;
-        std::sort ( ((*f).cur).begin(), ((*f).cur).end());
-        cout<<"FIRST("<<(*f).str<<") = { ";
-        for(f1 = ((*f).cur).begin(); f1 != ((*f).cur).end(); ++f1)
+        counter = 1;
+        std::sort ( ((*iterator1).current_sets).begin(), ((*iterator1).current_sets).end());
+        cout<<"FIRST("<<(*iterator1).str<<") = { ";
+        for(iterator2 = ((*iterator1).current_sets).begin(); iterator2 != ((*iterator1).current_sets).end(); ++iterator2)
         {
-            cout<<(*f1);
-            if(c < ((*f).cur).size())
+            cout<<(*iterator2);
+            if(counter < ((*iterator1).current_sets).size())
                cout<<", ";
-            c++;
+            ccounter++;
         }
         cout<<" }"<<endl;
     }
@@ -281,55 +264,55 @@ int task1()
     int has_epsilon = 0;
     int add_epsilon = 0;
     struct sets myset;
-    std::vector<string>::iterator t;
-    std::vector<string>::iterator n;
-    std::vector<string>::iterator s;
-    std::vector<struct sets>::iterator f;
-    std::vector<struct sets>::iterator f1;
+    std::vector<string>::iterator iterator1;
+    std::vector<string>::iterator iterator2;
+    std::vector<string>::iterator iterator3;
+    std::vector<struct sets>::iterator set_iterator1;
+    std::vector<struct sets>::iterator set_iterator2;
 
-    caltask0();
-    for(n = nonvec.begin(); n!= nonvec.end(); ++n)
+    task0();
+    for(iterator2 = non_terminal_vector.begin(); iterator2!= non_terminal_vector.end(); ++iterator2)
     {
-        myset.str = (*n);
+        myset.str = (*iterator2);
         first.push_back(myset);
     }
     while(start)
     {
         counter ++;
-        for(t = tvec.begin(); t != tvec.end(); ++t)
+        for(iterator1 = token_vector.begin(); iterator1 != token_vector.end(); ++iterator1)
         {
             add_epsilon = 0;
-            if( (*t).compare("#") != 0 && (*t).compare("##") != 0)
+            if( (*iterator1).compare("#") != 0 && (*iterator1).compare("##") != 0)
             {
-                for(f = first.begin(); f!= first.end(); ++f)
+                for(set_iterator1 = first.begin(); set_iterator1!= first.end(); ++set_iterator1)
                 {
-                    if( ((*f).str).compare((*t)) == 0 )
+                    if( ((*set_iterator1).str).compare((*iterator1)) == 0 )
                     {
                         break;
                     }
                 }
-                t++;
+                iterator1++;
                 //Checking for epsilon
-                if( (*t).compare("#") == 0)
+                if( (*iterator1).compare("#") == 0)
                 {
-                    if(!(std::find( ((*f).cur).begin(), ((*f).cur).end(), "#") != ((*f).cur).end()))
+                    if(!(std::find( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end(), "#") != ((*set_iterator1).current_sets).end()))
                     {
-                        ((*f).cur).push_back("#");
+                        ((*set_iterator1).current_sets).push_back("#");
                     }
                 }
-                while( (*t).compare("#") != 0 && (*t).compare("##") != 0)
+                while( (*iterator1).compare("#") != 0 && (*iterator1).compare("##") != 0)
                 {
                     //terminal check
-                    if(std::find( termvec.begin(), termvec.end(), *t) != termvec.end())
+                    if(std::find( terminal_vector.begin(), terminal_vector.end(), *iterator1) != terminal_vector.end())
                     {
                         add_epsilon = 0;
-                        if(!(std::find( ((*f).cur).begin(), ((*f).cur).end(), *t) != ((*f).cur).end()))
+                        if(!(std::find( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end(), *iterator1) != ((*set_iterator1).current_sets).end()))
                         {
-                            ((*f).cur).push_back(*t);
+                            ((*set_iterator1).current_sets).push_back(*iterator1);
                         }
-                        while( (*t).compare("#") != 0 && (*t).compare("##") != 0)
+                        while( (*iterator1).compare("#") != 0 && (*iterator1).compare("##") != 0)
                         {
-                            t++;
+                            iterator1++;
                         }
                         break;
                     }
@@ -337,22 +320,22 @@ int task1()
                     else
                     {
                         has_epsilon = 0;
-                        for(f1 = first.begin(); f1 != first.end(); ++f1)
+                        for(set_iterator2 = first.begin(); set_iterator2 != first.end(); ++set_iterator2)
                         {
-                            if( ((*f1).str).compare(*t) == 0 )
+                            if( ((*set_iterator2).str).compare(*iterator1) == 0 )
                             {
                                 break;
                             }
                         }
-                        //comparing the first sets to add the first set
-                        for( s = ((*f1).prev).begin(); s != ((*f1).prev).end(); ++s)
+                        //comparing with the previous_sets first sets to add the current_sets first set
+                        for( iterator3 = ((*set_iterator2).previous_sets).begin(); iterator3 != ((*set_iterator2).previous_sets).end(); ++iterator3)
                         {
                             //Adding first(B) - epsilon
-                            if ( (*s).compare("#") != 0)
+                            if ( (*iterator3).compare("#") != 0)
                             {
-                                if(!(std::find( ((*f).cur).begin(), ((*f).cur).end(), *s) != ((*f).cur).end()))
+                                if(!(std::find( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end(), *iterator3) != ((*set_iterator1).current_sets).end()))
                                 {
-                                    ((*f).cur).push_back(*s);
+                                    ((*set_iterator1).current_sets).push_back(*iterator3);
                                 }
                             }
                             else
@@ -365,21 +348,21 @@ int task1()
                         if (has_epsilon == 0)
                         {
                             add_epsilon = 0;
-                            while( (*t).compare("#") != 0 && (*t).compare("##") != 0)
+                            while( (*iterator1).compare("#") != 0 && (*iterator1).compare("##") != 0)
                             {
-                                t++;
+                                iterator1++;
                             }
                             break;
                         }
                     }
-                    t++;
-                    if( (*t).compare("#") == 0)
+                    iterator1++;
+                    if( (*iterator1).compare("#") == 0)
                     {
                         if (add_epsilon == 1)
                         {
-                            if(!(std::find( ((*f).cur).begin(), ((*f).cur).end(), "#") != ((*f).cur).end()))
+                            if(!(std::find( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end(), "#") != ((*set_iterator1).current_sets).end()))
                             {
-                                ((*f).cur).push_back("#");
+                                ((*set_iterator1).current_sets).push_back("#");
                             }
                         }
                     }
@@ -387,13 +370,13 @@ int task1()
             }
         }
         int flag = 0;
-        for(f = first.begin(); f!= first.end(); ++f)
+        for(set_iterator1 = first.begin(); set_iterator1!= first.end(); ++set_iterator1)
         {
-            if ( ((*f).cur).size() == ((*f).prev).size())
+            if ( ((*set_iterator1).current_sets).size() == ((*set_iterator1).previous_sets).size())
             {
-                std::sort ( ((*f).cur).begin(), ((*f).cur).end() );
-                std::sort ( ((*f).prev).begin(), ((*f).prev).end() );
-                if (!(std::equal( ((*f).cur).begin(), ((*f).cur).end(), ((*f).prev).begin() )))
+                std::sort ( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end() );
+                std::sort ( ((*set_iterator1).previous_sets).begin(), ((*set_iterator1).previous_sets).end() );
+                if (!(std::equal( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end(), ((*set_iterator1).previous_sets).begin() )))
                 {
                     flag = 1;
                     break;
@@ -409,13 +392,13 @@ int task1()
         {
             start = 0;
         }
-        for(f = first.begin(); f!= first.end(); ++f)
+        for(set_iterator1 = first.begin(); set_iterator1!= first.end(); ++set_iterator1)
         {
-            ((*f).prev).erase( ((*f).prev).begin(), ((*f).prev).end() );
-            ((*f).prev).reserve(((*f).cur).size());
-            for(s = ((*f).cur).begin(); s != ((*f).cur).end(); ++s)
+            ((*set_iterator1).previous_sets).erase( ((*set_iterator1).previous_sets).begin(), ((*set_iterator1).previous_sets).end() );
+            ((*set_iterator1).previous_sets).reserve(((*set_iterator1).current_sets).size());
+            for(iterator3 = ((*set_iterator1).current_sets).begin(); iterator3 != ((*set_iterator1).current_sets).end(); ++iterator3)
             {
-                ((*f).prev).push_back(*s);
+                ((*set_iterator1).previous_sets).push_back(*iterator3);
             }
         }
     }
@@ -424,20 +407,20 @@ int task1()
 
 int display_task2()
 {
-    int c;
-    std::vector<struct sets>::iterator f;
-    std::vector<std::string>::iterator f1;
-    for(f = follow.begin(); f != follow.end(); ++f)
+    int counter;
+    std::vector<struct sets>::iterator iterator1;
+    std::vector<std::string>::iterator iterator2;
+    for(iterator1 = follow.begin(); iterator1 != follow.end(); ++iterator1)
     {
-        c = 1;
-        std::sort ( ((*f).cur).begin(), ((*f).cur).end());
-        cout<<"FOLLOW("<<(*f).str<<") = { ";
-        for(f1 = ((*f).cur).begin(); f1 != ((*f).cur).end(); ++f1)
+        counter = 1;
+        std::sort ( ((*iterator1).current_sets).begin(), ((*iterator1).current_sets).end());
+        cout<<"FOLLOW("<<(*iterator1).str<<") = { ";
+        for(iterator2 = ((*iterator1).current_sets).begin(); iterator2 != ((*iterator1).current_sets).end(); ++iterator2)
         {
-            cout<<(*f1);
-            if(c < ((*f).cur).size())
+            cout<<(*iterator2);
+            if(counter < ((*iterator1).current_sets).size())
                cout<<", ";
-            c++;
+            counter++;
         }
         cout<<" }"<<endl;
     }
@@ -451,68 +434,69 @@ int task2()
     int has_epsilon = 0;
     int add_epsilon = 0;
     struct sets myset;
-    std::vector<string>::iterator t, k;
-    std::vector<string>::iterator n;
-    std::vector<string>::iterator s;
-    std::vector<struct sets>::iterator f;
-    std::vector<struct sets>::iterator f1;
-    std::vector<struct sets>::iterator fo;
+    std::vector<string>::iterator iterator1;
+    std::vector<string>::iterator iterator2;
+    std::vector<string>::iterator iterator3;
+    std::vector<string>::iterator iterator4;
+    std::vector<struct sets>::iterator set_iterator1;
+    std::vector<struct sets>::iterator set_iterator2;
+    std::vector<struct sets>::iterator set_iterator3;
 
     task1();
-    for(n = nonvec.begin(); n!= nonvec.end(); ++n)
+    for(iterator3 = non_terminal_vector.begin(); iterator3!= non_terminal_vector.end(); ++iterator3)
     {
-        myset.str = (*n);
+        myset.str = (*iterator3);
         follow.push_back(myset);
     }
     //adding $ to the first non_terminal
-    (follow[0].cur).push_back("$");
+    (follow[0].current_sets).push_back("$");
     while(start)
     {
         counter ++;
-        for(fo = follow.begin(); fo!= follow.end(); ++fo)
+        for(set_iterator3 = follow.begin(); set_iterator3!= follow.end(); ++set_iterator3)
         {
-            for(t = tvec.begin(); t != tvec.end(); ++t)
+            for(iterator1 = token_vector.begin(); iterator1 != token_vector.end(); ++iterator1)
             {
-                if( (*t).compare("#") != 0 && (*t).compare("##") != 0)
+                if( (*iterator1).compare("#") != 0 && (*iterator1).compare("##") != 0)
                 {
-                    //f is B
-                    for(f = follow.begin(); f!= follow.end(); ++f)
+                    //set_iterator1 is B
+                    for(set_iterator1 = follow.begin(); set_iterator1!= follow.end(); ++set_iterator1)
                     {
-                        if( ((*f).str).compare((*t)) == 0 )
+                        if( ((*set_iterator1).str).compare((*iterator1)) == 0 )
                         {
                             break;
                         }
                     }
-                    t++;
-                    while( (*t).compare("#") != 0 && (*t).compare("##") != 0)
+                    iterator1++;
+                    while( (*iterator1).compare("#") != 0 && (*iterator1).compare("##") != 0)
                     {
-                        if( ((*fo).str).compare(*t) == 0 )
+                        if( ((*set_iterator3).str).compare(*iterator1) == 0 )
                         {
-                            t++;
+                            iterator1++;
                             //checking for terminal
-                            if(std::find( termvec.begin(), termvec.end(), *t) != termvec.end())
+                            if(std::find( terminal_vector.begin(), terminal_vector.end(), *iterator1) != terminal_vector.end())
                             {
-                                if(!(std::find( ((*fo).cur).begin(), ((*fo).cur).end(), *t) != ((*fo).cur).end()))
+                                if(!(std::find( ((*set_iterator3).current_sets).begin(), ((*set_iterator3).current_sets).end(), *iterator1) != ((*set_iterator3).current_sets).end()))
                                 {
-                                    ((*fo).cur).push_back(*t);
+                                    ((*set_iterator3).current_sets).push_back(*iterator1);
                                 }
                             }
                             //adding first of C0 to follow of A
                             has_epsilon = 0;
                             add_epsilon = 0;
-                            else if( std::find( nonvec.begin(), nonvec.end(), *t) != nonvec.end() )
+                            else if( std::find( non_terminal_vector.begin(), non_terminal_vector.end(), *iterator1) != non_terminal_vector.end() )
                             {
-                                for( f1 = first.begin(); f1 != first.end(); ++f1)
+                                for( set_iterator2 = first.begin(); set_iterator2 != first.end(); ++set_iterator2)
                                 {
-                                    if( ((*f1).str).compare(*t) == 0 )
+                                    if( ((*set_iterator2).str).compare(*iterator1) == 0 )
                                     {
-                                        for( s = ((*f1).cur).begin(); s != ((*f1).cur).end(); ++s)
+                                        for( iterator4 = ((*set_iterator2).current_sets).begin(); iterator4 != ((*set_iterator2).current_sets).end(); ++iterator4)
                                         {
-                                            if ( (*s).compare("#") != 0)
+                                            if ( (*iterator4).compare("#") != 0)
                                             {
-                                                if(!(std::find( ((*fo).cur).begin(), ((*fo).cur).end(), *s) != ((*fo).cur).end()))
+                                                if(!(std::find( ((*set_iterator3).current_sets).begin(), ((*set_iterator3).current_sets).end(), *iterator4) != ((*set_iterator3).current_sets).end()))
                                                 {
-                                                    ((*fo).cur).push_back(*s);
+                                                    ((*set_iterator3).current_sets).push_back(*iterator4);
                                                 }
                                             }
                                             else
@@ -525,25 +509,25 @@ int task2()
                                 }
                                 if(has_epsilon == 1)
                                 {
-                                    k = t;
-                                    k++;
+                                    iterator2 = iterator1;
+                                    iterator2++;
                                     add_epsilon = 1;
-                                    while( (*k).compare("#") != 0 && (*k).compare("##") != 0 && has_epsilon == 1)
+                                    while( (*iterator2).compare("#") != 0 && (*iterator2).compare("##") != 0 && has_epsilon == 1)
                                     {
-                                        if( std::find( nonvec.begin(), nonvec.end(), *k) != nonvec.end() )
+                                        if( std::find( non_terminal_vector.begin(), non_terminal_vector.end(), *iterator2) != non_terminal_vector.end() )
                                         {
-                                            for( f1 = first.begin(); f1 != first.end(); ++f1)
+                                            for( set_iterator2 = first.begin(); set_iterator2 != first.end(); ++set_iterator2)
                                             {
-                                                if( ((*f1).str).compare(*k) == 0 )
+                                                if( ((*set_iterator2).str).compare(*iterator2) == 0 )
                                                 {
                                                     has_epsilon = 0;
-                                                    for( s = ((*f1).cur).begin(); s != ((*f1).cur).end(); ++s)
+                                                    for( iterator4 = ((*set_iterator2).current_sets).begin(); iterator4 != ((*set_iterator2).current_sets).end(); ++iterator4)
                                                     {
-                                                        if ( (*s).compare("#") != 0)
+                                                        if ( (*iterator4).compare("#") != 0)
                                                         {
-                                                            if(!(std::find( ((*fo).cur).begin(), ((*fo).cur).end(), *s) != ((*fo).cur).end()))
+                                                            if(!(std::find( ((*set_iterator3).current_sets).begin(), ((*set_iterator3).current_sets).end(), *iterator4) != ((*set_iterator3).current_sets).end()))
                                                             {
-                                                                ((*fo).cur).push_back(*s);
+                                                                ((*set_iterator3).current_sets).push_back(*iterator4);
                                                             }
                                                         }
                                                         else
@@ -554,15 +538,15 @@ int task2()
                                                     break;
                                                 }
                                             }
-                                            k++;
+                                            iterator2++;
                                         }
                                         else
                                         {
-                                            if(std::find( termvec.begin(), termvec.end(), *k) != termvec.end())
+                                            if(std::find( terminal_vector.begin(), terminal_vector.end(), *iterator2) != terminal_vector.end())
                                             {
-                                                if(!(std::find( ((*fo).cur).begin(), ((*fo).cur).end(), *k) != ((*fo).cur).end()))
+                                                if(!(std::find( ((*set_iterator3).current_sets).begin(), ((*set_iterator3).current_sets).end(), *iterator2) != ((*set_iterator3).current_sets).end()))
                                                 {
-                                                    ((*fo).cur).push_back(*k);
+                                                    ((*set_iterator3).current_sets).push_back(*iterator2);
                                                 }
                                             }
                                             add_epsilon = 0;
@@ -571,43 +555,43 @@ int task2()
                                     }
                                     if(add_epsilon == 1 && has_epsilon == 1)
                                     {
-                                        for( s = ((*f).cur).begin(); s != ((*f).cur).end(); ++s)
+                                        for( iterator4 = ((*set_iterator1).current_sets).begin(); iterator4 != ((*set_iterator1).current_sets).end(); ++iterator4)
                                         {
-                                            if(!(std::find( ((*fo).cur).begin(), ((*fo).cur).end(), *s) != ((*fo).cur).end()))
+                                            if(!(std::find( ((*set_iterator3).current_sets).begin(), ((*set_iterator3).current_sets).end(), *iterator4) != ((*set_iterator3).current_sets).end()))
                                             {
-                                                ((*fo).cur).push_back(*s);
+                                                ((*set_iterator3).current_sets).push_back(*iterator4);
                                             }
                                         }
                                     }
                                 }
                             }
                             //adding follow of B to follow of A
-                            else if( (*t).compare("#") == 0)
+                            else if( (*iterator1).compare("#") == 0)
                             {
-                                for( s = ((*f).cur).begin(); s != ((*f).cur).end(); ++s)
+                                for( iterator4 = ((*set_iterator1).current_sets).begin(); iterator4 != ((*set_iterator1).current_sets).end(); ++iterator4)
                                 {
-                                    if(!(std::find( ((*fo).cur).begin(), ((*fo).cur).end(), *s) != ((*fo).cur).end()))
+                                    if(!(std::find( ((*set_iterator3).current_sets).begin(), ((*set_iterator3).current_sets).end(), *iterator4) != ((*set_iterator3).current_sets).end()))
                                     {
-                                        ((*fo).cur).push_back(*s);
+                                        ((*set_iterator3).current_sets).push_back(*iterator4);
                                     }
                                 }
                                 break;
                             }
-                            t--;
+                            iterator1--;
                         }
-                        t++;
+                        iterator1++;
                     }
                 }
             }
         }
         int flag = 0;
-        for(f = follow.begin(); f!= follow.end(); ++f)
+        for(set_iterator1 = follow.begin(); set_iterator1!= follow.end(); ++set_iterator1)
         {
-            if ( ((*f).cur).size() == ((*f).prev).size())
+            if ( ((*set_iterator1).current_sets).size() == ((*set_iterator1).previous_sets).size())
             {
-                std::sort ( ((*f).cur).begin(), ((*f).cur).end() );
-                std::sort ( ((*f).prev).begin(), ((*f).prev).end() );
-                if (!(std::equal( ((*f).cur).begin(), ((*f).cur).end(), ((*f).prev).begin() )))
+                std::sort ( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end() );
+                std::sort ( ((*set_iterator1).previous_sets).begin(), ((*set_iterator1).previous_sets).end() );
+                if (!(std::equal( ((*set_iterator1).current_sets).begin(), ((*set_iterator1).current_sets).end(), ((*set_iterator1).previous_sets).begin() )))
                 {
                     flag = 1;
                     break;
@@ -623,13 +607,13 @@ int task2()
         {
             start = 0;
         }
-        for(f = follow.begin(); f!= follow.end(); ++f)
+        for(set_iterator1 = follow.begin(); set_iterator1!= follow.end(); ++set_iterator1)
         {
-            ((*f).prev).erase( ((*f).prev).begin(), ((*f).prev).end() );
-            ((*f).prev).reserve(((*f).cur).size());
-            for(s = ((*f).cur).begin(); s != ((*f).cur).end(); ++s)
+            ((*set_iterator1).previous_sets).erase( ((*set_iterator1).previous_sets).begin(), ((*set_iterator1).previous_sets).end() );
+            ((*set_iterator1).previous_sets).reserve(((*set_iterator1).current_sets).size());
+            for(iterator4 = ((*set_iterator1).current_sets).begin(); iterator4 != ((*set_iterator1).current_sets).end(); ++iterator4)
             {
-                ((*f).prev).push_back(*s);
+                ((*set_iterator1).previous_sets).push_back(*iterator4);
             }
         }
     }
@@ -650,6 +634,7 @@ int main (int argc, char* argv[])
     switch (task) {
         case 0:
             task0();
+            display_task0();
             break;
 
         case 1:
